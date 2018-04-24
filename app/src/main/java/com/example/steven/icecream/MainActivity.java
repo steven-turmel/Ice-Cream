@@ -1,5 +1,6 @@
 package com.example.steven.icecream;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -15,6 +16,8 @@ import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +37,9 @@ public class MainActivity extends AppCompatActivity {
     CheckBox marshmallowsBox;
     CheckBox mandmsBox;
     private static final Map<String, Double> finalPrices = addPrices();
+    double subTotal;
+
+    ArrayList<OrderItem> orderHistory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        orderHistory = new ArrayList<OrderItem>();
         priceView = (TextView) findViewById(R.id.priceView);
         fudgeAmount = (TextView) findViewById(R.id.fudgeAmount);
         fudgeBar = (SeekBar) findViewById(R.id.fudgeBar);
@@ -54,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         browniesBox = (CheckBox) findViewById(R.id.browniesBox);
         marshmallowsBox = (CheckBox) findViewById(R.id.marshmallowsBox);
         mandmsBox = (CheckBox) findViewById(R.id.mandmsBox);
-
+        subTotal = 0.0;
         fudgeBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -122,10 +129,19 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_menu_about) {
-            Toast.makeText(this, "'About' selected", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "'About' selected", Toast.LENGTH_SHORT).show();
+
+            Intent intent = new Intent(this, AboutActivity.class);
+            intent.putExtra("developer", "Steven Turmel");
+            startActivity(intent);
             return true; //if we handled the action
         } else if (id == R.id.action_menu_order_history) {
-            Toast.makeText(this, "'Order History' selected", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "'Order History' selected", Toast.LENGTH_SHORT).show();
+
+            Intent intent = new Intent(this, OrderHistoryActivity.class);
+            //pass the orders over
+            intent.putExtra("DataKey", orderHistory);
+            startActivity(intent);
             return true; //if we handled the action
         } else {
             return super.onOptionsItemSelected(item);
@@ -146,7 +162,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void processOrder(View view) {
-        Log.d("DEBUG", "Order Pressed");
+        Toast.makeText(this, "Your order is on the way!", Toast.LENGTH_LONG).show();
+        updatePrice();
+        orderHistory.add(new OrderItem(getToppings(), subTotal, fudgeBar.getProgress(),
+                sizeSpinner.getSelectedItem().toString(), flavorSpinner.getSelectedItem().toString()));
+    }
+
+    private String[] getToppings() {
+        ArrayList<String> temp = new ArrayList<>();
+        if (peanutsBox.isChecked()){
+            temp.add("Peanuts");
+        } if (almondsBox.isChecked()){
+            temp.add("Almonds");
+        } if (strawberriesBox.isChecked()) {
+            temp.add("Strawberries");
+        } if (gummiesBox.isChecked()) {
+            temp.add("Gummy Bears");
+        } if (mandmsBox.isChecked()){
+            temp.add("M&Ms");
+        } if (browniesBox.isChecked()){
+            temp.add("Brownies");
+        } if (oreosBox.isChecked()){
+            temp.add("Oreos");
+        } if (marshmallowsBox.isChecked()){
+            temp.add("Marshmallows");
+        }
+        return temp.toArray(new String[temp.size()]);
     }
 
     public void processTheWorks(View view) {
@@ -189,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
         }
         price += finalPrices.get(sizeSpinner.getSelectedItem().toString().toLowerCase());
         priceView.setText("$" + String.format("%.2f",price));
-
+        subTotal = price;
     }
 
     public void processCheckBoxChange(View view) {
